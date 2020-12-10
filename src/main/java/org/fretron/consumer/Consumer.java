@@ -24,8 +24,7 @@ public class Consumer {
             do {
                 ConsumerRecords<String, String> records = kafkaConsumer.poll(10);
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.println("Topic - "+ record.topic() +", "+record.partition()+", Partition - %d, Value: "+record.value());
-                }
+                    System.out.printf("offset = %d, key = %s, value = %s\n", record.offset(), record.key(), record.value());                }
             } while (true);
         } catch (Exception e) {
             System.out.println(e.getMessage());
