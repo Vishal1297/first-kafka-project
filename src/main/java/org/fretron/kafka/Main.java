@@ -1,11 +1,13 @@
 package org.fretron.kafka;
 
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.fretron.kafka.constant.Constant;
 import org.fretron.kafka.consumer.CustomConsumer;
+import org.fretron.kafka.model.User;
 import org.fretron.kafka.producer.CustomProducer;
 
 public class Main {
@@ -17,13 +19,14 @@ public class Main {
 
     private static void runConsumer() {
         System.out.println("Running Consumer...");
-        try (Consumer<String, String> consumer = CustomConsumer.createConsumer()) {
-            do {
-                ConsumerRecords<String, String> records = consumer.poll(10);
-                for (ConsumerRecord<String, String> record : records) {
+        try (KafkaConsumer<String, User> consumer = CustomConsumer.createConsumer()) {
+            System.out.println("Records");
+            while (true) {
+                ConsumerRecords<String, User> records = consumer.poll(10);
+                for (ConsumerRecord<String, User> record : records) {
                     System.out.printf("offset = %d, key = %s, value = %s\n", record.offset(), record.key(), record.value());
                 }
-            } while (true);
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -31,17 +34,14 @@ public class Main {
 
     private static void runProducer() {
         System.out.println("Running Producer...");
-        Producer<String, String> producer = CustomProducer.createProducer();
-        try {
-            for (int i = 0; i < 10; i++) {
-                System.out.println(i);
-                producer.send(new ProducerRecord<>("firstTopic", Integer.toString(i), "test message - " + i));
-            }
+        try (KafkaProducer<String, User> producer = CustomProducer.createProducer()) {
+            producer.send(new ProducerRecord<>(Constant.KAFKA_TOPIC_NAME, getFakeUser()));
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            producer.flush();
-            producer.close();
         }
+    }
+
+    public static User getFakeUser() {
+        return new User("Vishal", 23);
     }
 }
